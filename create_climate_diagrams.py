@@ -1,22 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from pathlib import Path
-
-basedir = Path("C:/Users/Kochti/Desktop/Studium/Python/exercise-4-TLKoch/")
-data_dir = basedir / "data"
-
-
-outputdir = basedir / "output"    
-# outputdir.mkdir()
-    
+  
     
 # Import both data tables into python using pandas. Set the index column to "MESS_DATUM" and parse the column values as dates. [1P]
-garmisch_dir  = data_dir / "produkt_klima_tag_20171010_20190412_01550.txt"
-zugspitze_dir = data_dir / "produkt_klima_tag_20171010_20190412_05792.txt"
 
-garmisch = pd.read_csv(garmisch_dir, parse_dates=["MESS_DATUM"], index_col="MESS_DATUM", sep = ";")
-zugspitze = pd.read_csv(zugspitze_dir, parse_dates=["MESS_DATUM"], index_col="MESS_DATUM", sep = ";")
+
+garmisch = pd.read_csv("data/produkt_klima_tag_20171010_20190412_01550.txt", parse_dates=["MESS_DATUM"], index_col="MESS_DATUM", sep = ";")
+zugspitze = pd.read_csv("data/produkt_klima_tag_20171010_20190412_05792.txt", parse_dates=["MESS_DATUM"], index_col="MESS_DATUM", sep = ";")
 
 # Clip the tables to the year 2018: [1P]
 garmisch  = garmisch.loc["2018"]
@@ -68,21 +59,19 @@ def create_climate_diagram(
     The figure
     
     """
-
-
-
     fig = plt.figure(figsize=(10,8))
     plt.rcParams['font.size'] = 16
 
     ax2 = fig.add_subplot(111)
     ax1 = ax2.twinx()
     
-    days = mdates.DayLocator(bymonthday=28)
-    monthFmt = mdates.DateFormatter("%b")
-    ax2.xaxis.set_major_locator(days)
-    ax2.xaxis.set_major_formatter(monthFmt)
-    ax1.xaxis.set_major_locator(days)
-    ax1.xaxis.set_major_formatter(monthFmt)
+    df = df.loc[:, [temp_col, prec_col]].resample("M").agg({temp_col: "mean", prec_col: "sum"})
+    
+    # Draw temperature values as a red line and precipitation values as blue bars: [1P]
+    # Hint: Check out the matplotlib documentation how to plot barcharts. Try to directly set the correct
+   
+    ax2.bar(df.index.strftime("%b"), df.loc[:, prec_col].values, width=0.8, color="b", label = "Precipitation")
+    ax1.plot(df.loc[:,temp_col].values, c="r", label = "Temperature")
     
     
     # Set appropiate limits to each y-axis using the function arguments: [1P]
@@ -90,22 +79,6 @@ def create_climate_diagram(
     ax2.set_ylim(prec_min, prec_max)
     ax1.set_ylim(temp_min, temp_max)
     
-    
-
-    # Draw temperature values as a red line and precipitation values as blue bars: [1P]
-    # Hint: Check out the matplotlib documentation how to plot barcharts. Try to directly set the correct
-
-
-    # agg sum Regen, mean Temp auf monatlich
-    
-    df = df.loc[:, [temp_col, prec_col]].resample("M").agg({temp_col: "mean", prec_col: "sum"})
-    
-    ax2.bar(x = df.index, height = list(df.loc[:, prec_col]), color = "b", width = 25, label = "Precipitation")
-    ax1.plot(df.loc[:,temp_col], c="r", label = "Temperature")
-
-    
-
-
     
     # Set appropiate labels to each y-axis: [1P]
     ax2.set_ylabel("Precipitation (mm)")
@@ -116,7 +89,7 @@ def create_climate_diagram(
 
     # Save the figure as png image in the "output" folder with the given filename. [1P]
  
-    plt.savefig(filename)
+    plt.savefig("output/" + filename)
     
     
     
